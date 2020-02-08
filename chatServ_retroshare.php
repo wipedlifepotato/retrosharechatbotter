@@ -23,7 +23,8 @@ class curl_c{
         $name=str_replace("__","/",$name);
         $this->ch = curl_init();
 	curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, 10);
-	print($this->url.$preurl."$name");
+	curl_setopt($this->ch, CURLOPT_HTTPHEADER, array('Accept: application/json'));
+	//print($this->url.$preurl."$name");
         curl_setopt($this->ch, CURLOPT_URL, $this->url.$preurl."$name");
         curl_setopt($this->ch, CURLOPT_PORT, $this->port);
         curl_setopt($this->ch, CURLOPT_HEADER, 1); 
@@ -43,8 +44,11 @@ class curl_c{
             curl_setopt($this->ch, CURLOPT_HTTPHEADER, array('Content-type: application/json', 'Content-length: '.strlen($encoded)));
         }
         $res = curl_exec($this->ch);
+	$hs=curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);
+	$header = substr($res, 0, $hs);
+	$res = substr($res, $hs);
         curl_close($this->ch);
-       // print($res);
+        //print($res);
         return $res;
     }
     function __call($name, $arguments) {
@@ -52,7 +56,7 @@ class curl_c{
     }
 
     function gjson($buf){
-$pattern = '
+/*$pattern = '
 /
 \{              # { character
     (?:         # non-capturing group
@@ -67,8 +71,12 @@ $pattern = '
         preg_match_all($pattern, $buf, $matches);
         
         $match=$matches[0][0];
-        //print_r($match);
-        return json_decode($match,true);
+        print_r($matches);
+	print("\r\n----\r\n");
+*/
+//	print_r($buf);
+
+        return json_decode($buf,true);
     }
 }
 
@@ -127,13 +135,16 @@ class chatServ{
                 $this->curl->peers($cert_json)
             );
             if ($res['returncode'] == 'ok') return True;
-
+	   // print_r($res);
+	    $this->addpeer_dbg_msg=$res['debug_msg'];
             return False;
     }
     function readMessage($channel){
 	//$this->curl->set_mPreurl("/api/v2/chat");
 	$messages=$this->curl->gjson( $this->curl->curl_do("$channel","","/api/v2/chat/messages/",0) );
 	//$messages=json_decode($messages,true);
+	//print("Messss: \n");
+	//print_r($messages);
 	return $messages;
 	//$this->curl->fix_mPreurl();
     }

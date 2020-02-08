@@ -1,0 +1,3 @@
+[submodule "retroshare-chat-node"]
+	path = retroshare-chat-node
+	url = https://github.com/wipedlife/retroshare-chat-node

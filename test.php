@@ -93,7 +93,7 @@ while(1){
 	}
 	foreach($messages['data'] as $msg){
 			if( strlen($msg['author_name']) == 0 || $msg['recv_time'] < $lasttime 
-				/*|| strstr($msg['author_name'], 'P0t4t0S3rv1c3')*/ ) continue;
+				|| strstr($msg['author_name'], 'P0t4t0S3rv1c3') ) continue;
 			//print_r($msg);
 			$author=$msg['author_name'];
 			$msg=$msg['msg'];

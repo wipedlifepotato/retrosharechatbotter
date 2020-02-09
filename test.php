@@ -6,6 +6,9 @@ $nameofbot='P0t4t0S3rv1c3';
 //$send=$serv->sendMessage('LA2F5CB25E2CFDA04', 'Сообщуха из JSON');
 //print_r($send);
 $lasttime=time();
+$db = new SQLite3("pubnodes.db");
+
+
 
 //enum in php? HA! to delete this shit in future i think...
 $enumWritePubNodes=array(
@@ -17,15 +20,15 @@ $clear_enum=1;
 $tor_enum=2;
 $i2p_enum=4;
 
-function writePubNodes($serv, $room,$what=0){ // 1==tor; 2 == onion; 4 == potato
+function writePubNodes($serv, $room,$what=-1){ // 1==tor; 2 == onion; 4 == potato
 	print("what==".((int)$what & $enumWritePubNodes['tor'])." ".$enumWritePubNodes['tor']." ".(int)$what );
 	if( ($what & $clear_enum) != 0
-		  || $what==0 ) $serv->sendMessage($room, 'http://livingstonei2p.xyz/retroshare/pubnodes.html');
+		  || $what==0 ) $serv->sendMessage($room, 'http://livingstonei2p.xyz/retroshare/pubnodes.php');
 	if(($what & $tor_enum) != 0
-		 || $what==0 ) $serv->sendMessage($room, 'http://7m7kocs5edegpic3.onion/retroshare/pubnodes.html');
+		 || $what==0 ) $serv->sendMessage($room, 'http://7m7kocs5edegpic3.onion/retroshare/pubnodes.php');
 	if(($what & $i2p_enum) != 0
 		 || $what==0 ) $serv->sendMessage($room, 
-		'http://potatlpuvdqy7ps5ac5i3tkornq5rqyfy6d7nv56r2r2nejtpmsa.b32.i2p/retroshare/pubnodes.html');
+		'http://potatlpuvdqy7ps5ac5i3tkornq5rqyfy6d7nv56r2r2nejtpmsa.b32.i2p/retroshare/pubnodes.php');
 }
 function getRetroshareLink($cert, $name, $text){
 	$cert=urlencode($cert);
@@ -62,6 +65,22 @@ function addCert($serv, $cert, $room){
 					 $serv->sendMessage($room, $mycertUrl);
 				}else $serv->sendMessage($room, 'cant add, check your cert: '.$serv->addpeer_dbg_msg);
 				print("cert: ". $cert);				
+}
+
+function getNodes($serv,$room,$limit=10, $off=0){
+	global $db;
+	$sql = "SELECT * FROM peers LIMIT $limit OFFSET $off";
+	$result = $db->query($sql);
+	$returns="";
+	$i=0;
+	while($r = $result->fetchArray(SQLITE3_ASSOC) ){
+		$i++;
+		/*foreach($r as $val=>$name){
+			print($val." : ". $name."\n");
+		}*/
+		$returns.=getRetroshareLink($r['cert'], $r['name'], $i." ");
+	}
+	$serv->sendMessage($room, $returns);
 }
 
 while(1){
@@ -122,7 +141,7 @@ Array
 	}
 	foreach($messages['data'] as $msg){
 			if( strlen($msg['author_name']) == 0 || $msg['recv_time'] < $lasttime 
-				|| strstr($msg['author_name'], 'P0t4t0S3rv1c3') ) continue;
+				/*|| strstr($msg['author_name'], 'P0t4t0S3rv1c3')*/ ) continue;
 			//print_r($msg);
 			$author=$msg['author_name'];
 			$msg=$msg['msg'];
@@ -145,14 +164,13 @@ Array
 				$args=explode(" ",$msg, 3);
 				addCert($serv, $args[1], $room);
 			}elseif  ( stristr($msg, "/getpubnodes") !== FALSE){
+				
 				$args=explode(" ",$msg, 3);
 				if( sizeof($args) > 1){
 					if( stristr($args[1], "tor") ) writePubNodes($serv, $room, $enumWritePubNodes['tor']);
 					elseif( stristr($args[1], "clear") ) writePubNodes($serv, $room, $enumWritePubNodes['clear']);
 					elseif( stristr($args[1], "i2p") ) writePubNodes($serv, $room, $enumWritePubNodes['i2p']);
-				}else{
-					writePubNodes($serv, $room);
-				}//else
+				}else getNodes($serv, $room);
 			}elseif  ( stristr($msg, "/wantbepubnodes") !== FALSE) 
 				$serv->sendMessage($room, "email: potatolivingstonei2p@gmail.com");
 			//print_r($msg);

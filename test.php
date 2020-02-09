@@ -7,11 +7,36 @@ $nameofbot='P0t4t0S3rv1c3';
 //print_r($send);
 $lasttime=time();
 
+//enum in php? HA! to delete this shit in future i think...
+$enumWritePubNodes=array(
+	"clear"=>(int)1,
+	"tor"=>(int)2,
+	"i2p"=>(int)4
+);
+$clear_enum=1;
+$tor_enum=2;
+$i2p_enum=4;
+
+function writePubNodes($serv, $room,$what=0){ // 1==tor; 2 == onion; 4 == potato
+	print("what==".((int)$what & $enumWritePubNodes['tor'])." ".$enumWritePubNodes['tor']." ".(int)$what );
+	if( ($what & $clear_enum) != 0
+		  || $what==0 ) $serv->sendMessage($room, 'http://livingstonei2p.xyz/retroshare/pubnodes.html');
+	if(($what & $tor_enum) != 0
+		 || $what==0 ) $serv->sendMessage($room, 'http://7m7kocs5edegpic3.onion/retroshare/pubnodes.html');
+	if(($what & $i2p_enum) != 0
+		 || $what==0 ) $serv->sendMessage($room, 
+		'http://potatlpuvdqy7ps5ac5i3tkornq5rqyfy6d7nv56r2r2nejtpmsa.b32.i2p/retroshare/pubnodes.html');
+}
 function getRetroshareLink($cert, $name, $text){
 	$cert=urlencode($cert);
-	return
-	"<a href='retroshare://certificate?radix=$cert&;name=$name'>$text</a>";
+	$name=urlencode($name);
+	
+	$r="<a href='retroshare://certificate?radix=$cert&name=$name'>$text</a>";
+	
+
+	return $r;
 }
+
 $rawmycert=
 "CQEGAcGexsBNBF49Pt0BCACxVFxCPBTfacDSrzad4abYwr0FNwJErB2BcfvYaft1
 FFZTZvWBNBD8x8D/A6/6K5sRCtT/1LiU7FEGX+aXvz/pqfOS1q5UPAzDqjc51qFs
@@ -28,6 +53,17 @@ ZjT9nd0f81BwGzReBGRyEcOJKvRFIa9QdwRw0HE5LD6r9iuqECizmt8CF/Ok1eSy
 tRsgivXBg5T6msaV2JrT9mFJFarXogQlpVAoo2LpE6C7ALSLAgZtb7K1Bh4DBgqJ
 ABEGHgQABgtNeSBjb21wdXRlcgUQcPFbev6WztdfH2H3+nmQ5gcD+dTm";
 $mycertUrl=getRetroshareLink($rawmycert, "potatoservice", "add my own");
+//print($mycertUrl);
+//exit(0);
+function addCert($serv, $cert, $room){
+				global $mycertUrl;
+				if( $serv->add_peer($cert) ){
+					 $serv->sendMessage($room, 'added! add me: ');
+					 $serv->sendMessage($room, $mycertUrl);
+				}else $serv->sendMessage($room, 'cant add, check your cert: '.$serv->addpeer_dbg_msg);
+				print("cert: ". $cert);				
+}
+
 while(1){
 	sleep(5);
 	$messages=$serv->readMessage($room);
@@ -94,19 +130,29 @@ Array
 			
 			if  ( stristr($msg, "ping") !== FALSE)
 				$send=$serv->sendMessage($room, 'PONG from JSON');
-			elseif  ( stristr($msg, "/help") !== FALSE){
-				$send=$serv->sendMessage($room, '/add *PLAINOLDFORMATCERT* /getpubnodes /wantbepubnodes');
-			}elseif  ( stristr($msg, "/add") !== FALSE){
+			elseif (strstr($msg,'retroshare://certificate') !== FALSE){
+				$tmp=explode("?",$msg, 2);
+				print_r($tmp);
+				$tmp=explode("&",$tmp[1]);
+				print_r($tmp);
+				$c=substr($tmp[0],6);
+				$c=urldecode($c);
+				addCert($serv, $c, $room);
 				
+			}elseif  ( stristr($msg, "/help") !== FALSE){
+				$send=$serv->sendMessage($room, '/add *PLAINOLDFORMATCERT* /getpubnodes [tor/i2p/clear] /wantbepubnodes');
+			}elseif  ( stristr($msg, "/add") !== FALSE){	
 				$args=explode(" ",$msg, 3);
-				if( $serv->add_peer($args[1]) ) $serv->sendMessage($room, 'added! add me: '.$mycertUrl);
-				else $serv->sendMessage($room, 'cant add, check your cert: '.$serv->addpeer_dbg_msg);
-				print("cert: ". $args[1]);
+				addCert($serv, $args[1], $room);
 			}elseif  ( stristr($msg, "/getpubnodes") !== FALSE){
-				$serv->sendMessage($room, 'http://livingstonei2p.xyz/retroshare/pubnodes.txt');
-				$serv->sendMessage($room, 'http://7m7kocs5edegpic3.onion/retroshare/pubnodes.txt');
-				$serv->sendMessage($room, 
-					'http://potatlpuvdqy7ps5ac5i3tkornq5rqyfy6d7nv56r2r2nejtpmsa.b32.i2p/retroshare/pubnodes.txt');
+				$args=explode(" ",$msg, 3);
+				if( sizeof($args) > 1){
+					if( stristr($args[1], "tor") ) writePubNodes($serv, $room, $enumWritePubNodes['tor']);
+					elseif( stristr($args[1], "clear") ) writePubNodes($serv, $room, $enumWritePubNodes['clear']);
+					elseif( stristr($args[1], "i2p") ) writePubNodes($serv, $room, $enumWritePubNodes['i2p']);
+				}else{
+					writePubNodes($serv, $room);
+				}//else
 			}elseif  ( stristr($msg, "/wantbepubnodes") !== FALSE) 
 				$serv->sendMessage($room, "email: potatolivingstonei2p@gmail.com");
 			//print_r($msg);

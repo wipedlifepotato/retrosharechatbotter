@@ -16,17 +16,16 @@ $enumWritePubNodes=array(
 	"tor"=>(int)2,
 	"i2p"=>(int)4
 );
-$clear_enum=1;
-$tor_enum=2;
-$i2p_enum=4;
+
 
 function writePubNodes($serv, $room,$what=-1){ // 1==tor; 2 == onion; 4 == potato
+	global $enumWritePubNodes;
 	print("what==".((int)$what & $enumWritePubNodes['tor'])." ".$enumWritePubNodes['tor']." ".(int)$what );
-	if( ($what & $clear_enum) != 0
+	if( ($what & $enumWritePubNodes['clear']) != 0
 		  || $what==0 ) $serv->sendMessage($room, 'http://livingstonei2p.xyz/retroshare/pubnodes.php');
-	if(($what & $tor_enum) != 0
+	if(($what & $enumWritePubNodes['tor']) != 0
 		 || $what==0 ) $serv->sendMessage($room, 'http://7m7kocs5edegpic3.onion/retroshare/pubnodes.php');
-	if(($what & $i2p_enum) != 0
+	if(($what & $enumWritePubNodes['i2p']) != 0
 		 || $what==0 ) $serv->sendMessage($room, 
 		'http://potatlpuvdqy7ps5ac5i3tkornq5rqyfy6d7nv56r2r2nejtpmsa.b32.i2p/retroshare/pubnodes.php');
 }

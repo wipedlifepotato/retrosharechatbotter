@@ -1,7 +1,7 @@
 <?php
 require_once('chatServ_retroshare.php');
 $serv=new chatServ('localhost','1234');
-$room="L90E043C6C6376AFD";
+$rooms=array("L90E043C6C6376AFD","LA2F5CB25E2CFDA04", "L8040CFF426125BAF", "L6841392D6FE78A6F", "LC5D0D53DF79DB7B3");
 $nameofbot='P0t4t0S3rv1c3';
 //$send=$serv->sendMessage('LA2F5CB25E2CFDA04', 'Сообщуха из JSON');
 //print_r($send);
@@ -82,13 +82,16 @@ function getNodes($serv,$room,$limit=10, $off=0){
 }
 
 while(1){
-
 	sleep(5);
+	foreach($rooms as $room){
+	//
 	$messages=$serv->readMessage($room);
 	$messages_size=sizeof($messages['data']);
 	if ( $messages['returncode'] != 'ok' ){
-		print('cant read... err'. $messages['returncode']);
-		sleep(5);
+		print('cant read... err(maybe not messages yet, write to channel)'. $messages['returncode']);
+		if( ! $serv->sendMessage($room,"vsem darova") )print('no like its trouble of you');
+		else print("jes, its trouble of not messages... like to fixed");
+		sleep(1);
 		continue;
 	}
 	foreach($messages['data'] as $msg){
@@ -125,10 +128,13 @@ while(1){
 				}else getNodes($serv, $room);
 			}elseif  ( stristr($msg, "/wantbepubnodes") !== FALSE) 
 				$serv->sendMessage($room, "email: potatolivingstonei2p@gmail.com");
+			elseif ( stristr($msg, "/dice") !== FALSE) $serv->sendMessage($room, "num... ".rand(0,6) );
+			//elseif ( stristr($msg, "/joke") !== FALSE) $serv->sendMessage($room, "joke... ".joke() );
 			print("--------\r\n");
 	}
 	$lasttime=time();
 	if($messages_size > $MXS) $serv->clearLobbies();
+}//foreach
 }//while
 
 ?>

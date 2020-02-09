@@ -162,6 +162,9 @@ class chatServ{
 	$ret=$this->curl->gjson($this->curl->chat__lobbies());
 	return $ret;
     }
+    function clearLobbies(){
+	$this->curl->chat__clear_lobby();
+    }
 }
 
 ?>

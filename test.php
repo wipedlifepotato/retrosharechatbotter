@@ -8,6 +8,8 @@ $nameofbot='P0t4t0S3rv1c3';
 $lasttime=time();
 $db = new SQLite3("pubnodes.db");
 
+$MXS=120;
+
 
 
 //enum in php? HA! to delete this shit in future i think...
@@ -74,65 +76,16 @@ function getNodes($serv,$room,$limit=10, $off=0){
 	$i=0;
 	while($r = $result->fetchArray(SQLITE3_ASSOC) ){
 		$i++;
-		/*foreach($r as $val=>$name){
-			print($val." : ". $name."\n");
-		}*/
 		$returns.=getRetroshareLink($r['cert'], $r['name'], $i." ");
 	}
 	$serv->sendMessage($room, $returns);
 }
 
 while(1){
+
 	sleep(5);
 	$messages=$serv->readMessage($room);
-	//print_r($messages);
-/*
-Array
-(
-    [data] => Array
-        (
-            [0] => Array
-                (
-                    [author_id] => a15bbad739c9671d2f648694da2d48f3
-                    [author_name] => P0t4t0S3rv1c3
-                    [id] => 2671838495
-                    [incoming] => 
-                    [links] => Array
-                        (
-                        )
-
-                    [msg] => test
-                    [read] => 1
-                    [recv_time] => 1581196081
-                    [send_time] => 1581196081
-                    [was_send] => 1
-                )
-
-            [1] => Array
-                (
-                    [author_id] => a15bbad739c9671d2f648694da2d48f3
-                    [author_name] => P0t4t0S3rv1c3
-                    [id] => 1883337274
-                    [incoming] => 
-                    [links] => Array
-                        (
-                        )
-
-                    [msg] => ping
-                    [read] => 1
-                    [recv_time] => 1581196369
-                    [send_time] => 1581196369
-                    [was_send] => 1
-                )
-
-        )
-
-    [debug_msg] => 
-    [returncode] => ok
-    [statetoken] => 4698
-)
-
-*/
+	$messages_size=sizeof($messages['data']);
 	if ( $messages['returncode'] != 'ok' ){
 		print('cant read... err'. $messages['returncode']);
 		sleep(5);
@@ -172,10 +125,10 @@ Array
 				}else getNodes($serv, $room);
 			}elseif  ( stristr($msg, "/wantbepubnodes") !== FALSE) 
 				$serv->sendMessage($room, "email: potatolivingstonei2p@gmail.com");
-			//print_r($msg);
 			print("--------\r\n");
 	}
 	$lasttime=time();
+	if($messages_size > $MXS) $serv->clearLobbies();
 }//while
 
 ?>

@@ -101,14 +101,19 @@ function doAdd($serv,$room,$msg){
 				addCert($serv, $args[1], $room);
 }
 function doGetpubnodes($serv,$room,$msg){
+				global $enumWritePubNodes;
 				$args=explode(" ",$msg, 3);
 				print_r($args);
 				print( sizeof($args) );
 				if( sizeof($args) == 2){
-					if( stristr($args[1], "tor") !== FALSE ) return writePubNodes($serv, $room, $enumWritePubNodes['tor']);
-					elseif( stristr($args[1], "clear")!== FALSE  ) return writePubNodes($serv, $room, $enumWritePubNodes['clear']);
-					elseif( stristr($args[1], "i2p")!== FALSE  ) return writePubNodes($serv, $room, $enumWritePubNodes['i2p']);
-				}else getNodes($serv, $room);	
+					if( stristr($args[1], "tor") !== FALSE ) 
+						return writePubNodes($serv, $room, $enumWritePubNodes['tor']);
+					elseif( stristr($args[1], "clear")!== FALSE  ) 
+						return writePubNodes($serv, $room, $enumWritePubNodes['clear']);
+					elseif( stristr($args[1], "i2p")!== FALSE  ) 
+						return writePubNodes($serv, $room, $enumWritePubNodes['i2p']);
+				}else 
+					return getNodes($serv, $room);	
 }
 function doWantbepubnodes($serv,$room,$msg){
 	$serv->sendMessage($room, "email: potatolivingstonei2p@gmail.com");

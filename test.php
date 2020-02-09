@@ -118,7 +118,7 @@ while(1){
 			}elseif  ( stristr($msg, "/getpubnodes") !== FALSE){
 				
 				$args=explode(" ",$msg, 3);
-				if( sizeof($args) > 1){
+				if( sizeof($args) > 2){
 					if( stristr($args[1], "tor") ) writePubNodes($serv, $room, $enumWritePubNodes['tor']);
 					elseif( stristr($args[1], "clear") ) writePubNodes($serv, $room, $enumWritePubNodes['clear']);
 					elseif( stristr($args[1], "i2p") ) writePubNodes($serv, $room, $enumWritePubNodes['i2p']);
